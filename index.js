@@ -1,23 +1,35 @@
-/* Your Code Here */
+class Employee {
+    constructor(record) {
+        this.record = record;
+    }
 
-/*
- We're giving you this function. Take a look at it, you might see some usage
- that's new and different. That's because we're avoiding a well-known, but
- sneaky bug that we'll cover in the next few lessons!
+    static wagesEarnedOnDate(record, date) {
+        let timeInEvents = record.timeInEvents.filter(event => event.date <= date);
+        let timeOutEvents = record.timeOutEvents.filter(event => event.date <= date);
 
- As a result, the lessons for this function will pass *and* it will be available
- for you to use if you need it!
- */
+        if (timeInEvents.length === 0 && timeOutEvents.length === 0) {
+            return 0;
+        }
 
-const allWagesFor = function () {
-    const eligibleDates = this.timeInEvents.map(function (e) {
-        return e.date
-    })
+        let wage = record.wage;
 
-    const payable = eligibleDates.reduce(function (memo, d) {
-        return memo + wagesEarnedOnDate.call(this, d)
-    }.bind(this), 0) // <== Hm, why did we need to add bind() there? We'll discuss soon!
+        if (timeOutEvents.length === 0) {
+            return (24 - timeInEvents[timeInEvents.length - 1].hour) * wage;
+        }
 
-    return payable
+        if (timeInEvents.length === 0) {
+            return timeOutEvents[0].hour * wage;
+        }
+
+        let timeWorked = (timeOutEvents[0].hour - timeInEvents[timeInEvents.length - 1].hour) % 24;
+        return timeWorked * wage;
+    }
+
+    static allWagesFor(record) {
+        let dates = Array.from(new Set([...record.timeInEvents, ...record.timeOutEvents].map(event => event.date))).sort();
+        return dates.reduce((wages, date) => wages + this.wagesEarnedOnDate(record, new Date(date)), 0);
+    }
 }
 
+let totalWages = employeeRecords.reduce((sum, record) => sum + Employee.allWagesFor(record), 0);
+return totalWages;
